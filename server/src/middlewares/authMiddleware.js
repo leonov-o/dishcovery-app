@@ -1,6 +1,5 @@
 import {ApiError} from "../exceptions/ApiError.js";
 import {verifyToken} from "../utils/jwt.js";
-import {_logFunc} from "nodemailer/lib/shared/index.js";
 
 
 export default function (req, res, next) {

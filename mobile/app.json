@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "dishcovery",
+    "slug": "dishcovery",
+    "scheme": "acme",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.oleksandr.leonov.dishcovery"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FF6347",
+          "image": "./assets/splash.png",
+          "imageWidth": 200
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Montserrat-Light.ttf",
+            "./assets/fonts/Montserrat-Regular.ttf",
+            "./assets/fonts/Montserrat-Black.ttf",
+            "./assets/fonts/Montserrat-ExtraBold.ttf",
+            "./assets/fonts/Montserrat-Bold.ttf",
+            "./assets/fonts/Montserrat-SemiBold.ttf",
+            "./assets/fonts/Montserrat-Medium.ttf",
+            "./assets/fonts/Montserrat-ExtraLight.ttf",
+            "./assets/fonts/Montserrat-Thin.ttf"
+          ]
+        }
+      ]
+    ]
+  }
+}
