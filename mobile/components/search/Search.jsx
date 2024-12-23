@@ -5,10 +5,13 @@ import {SIZES} from "../../constants";
 import {styles} from "./search.styles";
 import {Input} from "../shared";
 import {useRouter} from "expo-router";
+import {useState} from "react";
 const mainBg = require("../../assets/mainBg.png");
 
 export const Search = () => {
     const router = useRouter();
+
+    const [value, setValue] = useState("");
 
     return (
         <View>
@@ -18,7 +21,7 @@ export const Search = () => {
                         ідеальний рецепт</Text>
                 </View>
                 <View style={{marginTop: SIZES.small}}>
-                    <Input placeholder="Пошук" onSubmitEditing={() => router.push("/search")} style={styles.input}/>
+                    <Input placeholder="Пошук" onChangeText={(value) => setValue(value)} onSubmitEditing={() => router.push(`/search?search=${value}`)} style={styles.input}/>
                 </View>
 
         </View>
