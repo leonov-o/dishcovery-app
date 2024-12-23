@@ -3,7 +3,7 @@ import {recipeService} from "../services/index.js";
 class RecipeController {
     async getRecipes(req, res, next) {
         try {
-            const recipes = await recipeService.getAll(req.body);
+            const recipes = await recipeService.getAll(req.query);
             res.status(200).json({
                 success: true,
                 data: recipes,

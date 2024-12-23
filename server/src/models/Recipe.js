@@ -9,8 +9,8 @@ const Recipe = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
-    categoryId: {
-        type: mongoose.Schema.Types.ObjectId,
+    category: {
+        type: String,
         ref: "Category"
     },
     isPublic: {

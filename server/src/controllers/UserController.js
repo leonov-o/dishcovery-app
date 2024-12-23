@@ -6,12 +6,6 @@ class UserController {
     async login(req, res, next) {
         try {
             const data = await userService.login(req.body);
-            res.cookie("refreshToken", data.refreshToken, {
-                httpOnly: true,
-                maxAge: 1000 * 60 * 60 * 24 * 30,
-                sameSite: 'none',
-                secure: true
-            });
             res.status(200).json({
                 success: true,
                 data
@@ -24,12 +18,6 @@ class UserController {
     async register(req, res, next) {
         try {
             const data = await userService.register(req.body);
-            res.cookie("refreshToken", data.refreshToken, {
-                httpOnly: true,
-                maxAge: 1000 * 60 * 60 * 24 * 30,
-                sameSite: 'none',
-                secure: true
-            });
             res.status(200).json({
                 success: true,
                 data
@@ -51,9 +39,8 @@ class UserController {
 
     async logout(req, res, next) {
         try {
-            const {refreshToken} = req.cookies;
+            const {refreshToken} = req.body;
             await userService.logout(refreshToken);
-            res.clearCookie('refreshToken');
             return res.json({
                 success: true
             });
@@ -64,9 +51,8 @@ class UserController {
 
     async refresh(req, res, next) {
         try {
-            const {refreshToken} = req.cookies;
+            const {refreshToken} = req.body;
             const data = await userService.refresh(refreshToken);
-            res.cookie('refreshToken', data.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none', secure: true});
             return  res.status(200).json({
                 success: true,
                 data

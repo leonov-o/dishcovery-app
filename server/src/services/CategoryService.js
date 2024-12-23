@@ -7,8 +7,8 @@ class CategoryService {
         return Category.find({});
     }
 
-    async getById(id) {
-        return Category.findOne({_id: id});
+    async getByName(name) {
+        return Category.findOne({name: name});
     }
 
     async create(name) {

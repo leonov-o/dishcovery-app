@@ -15,9 +15,9 @@ class CategoryController {
         }
     }
 
-    async getCategoryById(req, res, next) {
+    async getCategoryByName(req, res, next) {
         try {
-            const category = await categoryService.getById(req.params.id);
+            const category = await categoryService.getByName(req.params.name);
             res.status(200).json({
                 success: true,
                 data: category
