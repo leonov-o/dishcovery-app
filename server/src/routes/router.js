@@ -10,7 +10,7 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 const router = new Router();
 
 router.get("/category", categoryController.getAllCategories);
-router.get("/category/:id", categoryController.getCategoryById);
+router.get("/category/:name", categoryController.getCategoryByName);
 // router.post("/category", categoryController.createCategory);
 
 router.get("/recipe", recipeController.getRecipes);
@@ -25,7 +25,7 @@ router.post("/login", userController.login);
 router.post("/register", userController.register);
 router.get('/activate/:link', userController.activate);
 router.post("/logout", authMiddleware, userController.logout);
-router.get("/refresh", userController.refresh);
+router.post("/refresh", userController.refresh);
 router.get("/users", userController.getAllUsers);
 router.get("/users/:id", userController.getUserById);
 router.get("/users/email/:email", userController.getUserByEmail);
