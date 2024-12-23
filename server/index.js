@@ -4,7 +4,6 @@ import mongoose from 'mongoose';
 import fileUpload from 'express-fileupload';
 import cors from 'cors';
 import router from './src/routes/router.js';
-import cookieParser from "cookie-parser";
 import errorMiddleware from "./src/middlewares/errorMiddleware.js";
 import {requestLogger} from "./src/middlewares/requestLogger.js";
 
@@ -19,7 +18,6 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE"],
 }));
 app.use(express.json());
-app.use(cookieParser());
 
 app.use(requestLogger)
 app.use("/api", router);
