@@ -5,35 +5,56 @@ import User from "../models/User.js";
 
 class RecipeService {
 
-    async getAll(body) {
-        const {page = 0, limit = 10, filters = {}} = body;
-        const {search, categoryId, sort} = filters;
-        console.log(limit)
+    async getAll(query) {
+        const { page = 0, limit = 10, isPublic, search, category, authorId, sort } = query;
+        console.log(query)
+
         const searchQuery = {};
-        const sortQuery = {};
 
         if (search) {
             searchQuery.$or = [
-                { title: { $regex: search, $options: "i" } }, // Пошук в назві
-                { description: { $regex: search, $options: "i" } }, // Пошук в описі
-                { ingredients: { $regex: search, $options: "i" } }, // Пошук в назвах інгредієнтів
-                { instructions: { $regex: search, $options: "i" } } // Пошук в інструкціях
+                { title: { $regex: search, $options: "i" } },
+                { description: { $regex: search, $options: "i" } },
+                { ingredients: { $regex: search, $options: "i" } },
+                { instructions: { $regex: search, $options: "i" } }
             ];
         }
 
-        if (categoryId) searchQuery.categoryId = categoryId;
+        if (category) searchQuery.category = category;
+        if (authorId) searchQuery.authorId = authorId;
 
-        if (sort === "likesAsc") sortQuery.likes = 1;
-        else if (sort === "likesDesc") sortQuery.likes = -1;
-        else if (sort === "newest") sortQuery.createdAt = -1;
-        else if (sort === "popular") sortQuery.views = -1;
+        if (isPublic !== undefined) searchQuery.isPublic = Boolean(isPublic);
 
-        const recipes = await Recipe.find(searchQuery)
-            .sort(sortQuery)
-            .limit(limit)
-            .skip(page * limit);
 
-        return recipes;
+        let sortQuery = {};
+        if (sort === "likesAsc" || sort === "likesDesc") {
+
+            const sortDirection = sort === "likesAsc" ? 1 : -1;
+
+            const recipes = await Recipe.aggregate([
+                { $match: searchQuery },
+                {
+                    $addFields: {
+                        likesCount: { $size: "$likes" },
+                    },
+                },
+                { $sort: { likesCount: sortDirection } },
+                { $skip: page * limit },
+                { $limit: limit },
+            ]);
+
+            return recipes;
+        } else {
+            if (sort === "newest") sortQuery.createdAt = -1;
+            else if (sort === "popular") sortQuery.views = -1;
+
+            const recipes = await Recipe.find(searchQuery)
+                .sort(sortQuery)
+                .limit(limit)
+                .skip(page * limit);
+
+            return recipes;
+        }
     }
 
     async getById(id, userId) {
@@ -73,14 +94,17 @@ class RecipeService {
         }
 
         await Promise.all([targetRecipe.save(), user.save()]);
-        return targetRecipe.likes;
+        return {
+            userLikes: user.likes,
+            recipeLikes: targetRecipe.likes.length
+        };
     }
 
     async create(recipe, userId) {
         if (!userId) {
             throw ApiError.UnauthorizedError();
         }
-        if (!recipe.title || !recipe.ingredients || recipe.ingredients.length < 1 || !recipe.instructions || !recipe.categoryId || !recipe.difficulty || recipe.cookTime < 0) {
+        if (!recipe.title || !recipe.ingredients || recipe.ingredients.length < 1 || !recipe.instructions || !recipe.category || !recipe.difficulty || recipe.cookTime < 0) {
             throw ApiError.BadRequest("Невірні дані про рецепт");
         }
         if (!recipe.image || recipe.image.length < 1) {
@@ -114,8 +138,8 @@ class RecipeService {
         if (recipe.description) {
             updateData.description = recipe.description;
         }
-        if (recipe.categoryId) {
-            updateData.categoryId = recipe.categoryId;
+        if (recipe.category) {
+            updateData.category = recipe.category;
         }
         if (recipe.isPublic) {
             updateData.isPublic = recipe.isPublic;
@@ -142,6 +166,7 @@ class RecipeService {
         if (userId !== targetRecipe.authorId.toString()) {
             throw ApiError.ForbiddenError();
         }
+
         return Recipe.findOneAndDelete({_id: id});
     }
 
