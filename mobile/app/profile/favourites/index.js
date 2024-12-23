@@ -1,12 +1,44 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {COLORS, SIZES} from "../../../constants";
 import {Stack, useRouter} from "expo-router";
-import {SafeAreaView, ScrollView, TouchableOpacity} from "react-native";
+import {SafeAreaView, ScrollView, Text, TouchableOpacity} from "react-native";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
 import {ItemList} from "../../../components";
+import {useStore} from "../../../store/store";
+import {RecipeService} from "../../../entities";
 
 const Favourites = () => {
     const router = useRouter();
+    const user = useStore(state => state.user);
+    const [recipes, setRecipes] = useState([]);
+    const [error, setError] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
+
+
+    const fetchLikedRecipes = async () => {
+        try {
+            setIsLoading(true)
+
+            const result = (await Promise.all(
+                user.likes.map(async (id) => {
+                    try {
+                        const res = await RecipeService.getRecipeById(id);
+                        return res.data;
+                    } catch (e) {
+                    }
+                })
+            )).filter(item => item !== undefined);
+            setRecipes(result)
+            setIsLoading(false)
+        } catch (e) {
+            setIsLoading(false)
+            setError(e.response?.data?.message)
+        }
+    }
+
+    useEffect(() => {
+        fetchLikedRecipes();
+    }, []);
 
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: COLORS.bgSecondary}}>
@@ -29,7 +61,11 @@ const Favourites = () => {
                 }}
             />
             <ScrollView style={{paddingHorizontal: SIZES.xLarge}}>
-                <ItemList title="" data={new Array(6).fill(0)}/>
+                {
+                    isLoading
+                        ? <ItemList title="" data={new Array(6).fill(0)}/>
+                        : error ? <Text>{error}</Text> : <ItemList title="" data={recipes.reverse()}/>
+                }
             </ScrollView>
         </SafeAreaView>
     );

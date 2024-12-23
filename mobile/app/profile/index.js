@@ -3,10 +3,24 @@ import {Stack, useRouter} from "expo-router";
 import {COLORS, SIZES} from "../../constants";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
 import {DButton} from "../../components";
+import {useStore} from "../../store/store";
+import {useEffect} from "react";
 
 
 const Profile = () => {
     const router = useRouter();
+    const user = useStore(state => state.user);
+    const fetchMyUser = useStore(state => state.fetchMyUser);
+    const fetchUserLogout = useStore(state => state.fetchUserLogout);
+
+    const handleLogout = async () => {
+        await fetchUserLogout();
+        router.push("/login");
+    }
+
+    useEffect(() => {
+        fetchMyUser();
+    }, []);
 
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: COLORS.bgSecondary}}>
@@ -31,13 +45,13 @@ const Profile = () => {
                     <Text style={{
                         fontSize: SIZES.xLarge,
                         fontFamily: "Montserrat-Regular",
-                    }}>Привіт, User</Text>
+                    }}>Привіт, {user.name}</Text>
                 </View>
                 <View>
                     <DButton text={"Мій аккаунт"} onPress={() => router.push("/profile/account")} textAlign="left" variant="outline"/>
                     <DButton text={"Мої рецепти"} onPress={() => router.push("/profile/my-recipes")} textAlign="left" variant="outline"/>
                     <DButton text={"Улюблені рецепти"} onPress={() => router.push("/profile/favourites")} textAlign="left" variant="outline"/>
-                    <DButton text={"Вийти з аккаунту"}  textAlign="left" variant="danger"/>
+                    <DButton text={"Вийти з аккаунту"}  textAlign="left" variant="danger" onPress={handleLogout}/>
                 </View>
             </View>
         </SafeAreaView>
