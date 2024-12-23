@@ -5,8 +5,13 @@
     "scheme": "acme",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/mainBg.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/mainBg.png",
+      "backgroundColor": "#ffffff",
+      "imageWidth": 200
+    },
     "newArchEnabled": true,
     "android": {
       "package": "com.oleksandr.leonov.dishcovery"
@@ -16,14 +21,7 @@
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#FF6347",
-          "image": "./assets/splash.png",
-          "imageWidth": 200
-        }
-      ],
+      "expo-splash-screen",
       [
         "expo-font",
         {
