@@ -132,9 +132,10 @@ export const useStore = create()(immer(persist((set, get) => ({
                 state.error = ""
             })
         }catch (e) {
-            console.log(e.response?.data?.message)
+            console.log(e.response?.data)
             set(state => {
                 state.error = e.response?.data?.message
+                state.isAuth = false
             })
         }
     },

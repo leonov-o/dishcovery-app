@@ -104,7 +104,9 @@ class RecipeService {
         if (!userId) {
             throw ApiError.UnauthorizedError();
         }
-        if (!recipe.title || !recipe.ingredients || recipe.ingredients.length < 1 || !recipe.instructions || !recipe.category || !recipe.difficulty || recipe.cookTime < 0) {
+        if (!recipe.title || !recipe.ingredients || recipe.ingredients.length < 1 ||
+            !recipe.instructions || !recipe.category || !recipe.difficulty ||
+            recipe.cookTime < 0) {
             throw ApiError.BadRequest("Невірні дані про рецепт");
         }
         if (!recipe.image || recipe.image.length < 1) {

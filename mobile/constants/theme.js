@@ -1,33 +1,26 @@
 const COLORS = {
-    // Основные цвета
     primary: "#FF4500",
     secondary: "#FFA500",
     tertiary: "#4CAF50",
 
-    // Фоновые цвета
     bgPrimary: "#FFFFFF",
     bgSecondary: "#F5F5F5",
 
-    // Текстовые цвета
     textPrimary: "#333333",
     textSecondary: "#666666",
     textHighlight: "#FF4500",
 
-    // Цвета для кнопок
     buttonPrimary: "#FF6347",
     buttonSecondary: "#4CAF50",
     buttonDisabled: "#D3D3D3",
 
-    // Цвета для границ и теней
     border: "#E0E0E0",
     shadow: "rgba(0, 0, 0, 0.1)",
 
-    // Специальные цвета
     error: "#FF0000",
     success: "#4CAF50",
     warning: "#FFC107",
 
-    // Белый и светло-белый
     white: "#FFFFFF",
     lightWhite: "#FAFAFC",
 };
