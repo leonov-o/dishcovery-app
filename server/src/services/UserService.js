@@ -38,7 +38,7 @@ class UserService {
         const activationLink = uuidv4();
 
         const newUser = await this.createUser({email, password, name, activationLink});
-        mailService.sendActivationMail(email, `${process.env.SERVER_URL}/api/activate/${activationLink}`);
+        mailService.sendActivationMail(email, `${process.env.SERVER_URL}/api/users/activate/${activationLink}`);
         return this.createSession(newUser);
     }
 
@@ -161,7 +161,7 @@ class UserService {
 
             const activationLink = uuidv4();
             updateData.activationLink = activationLink;
-            mailService.sendActivationMail(user.email, `${process.env.SERVER_URL}/api/activate/${activationLink}`);
+            mailService.sendActivationMail(user.email, `${process.env.SERVER_URL}/api/users/activate/${activationLink}`);
         }
         if (user.password) {
             updateData.password = hashPassword(user.password);

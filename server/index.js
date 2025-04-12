@@ -3,7 +3,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import fileUpload from 'express-fileupload';
 import cors from 'cors';
-import router from './src/routes/router.js';
+import router from './src/routes/index.js';
 import errorMiddleware from "./src/middlewares/errorMiddleware.js";
 import {requestLogger} from "./src/middlewares/requestLogger.js";
 
