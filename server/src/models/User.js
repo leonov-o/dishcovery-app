@@ -20,6 +20,12 @@ const User = new mongoose.Schema({
             ref: "Recipe"
         }
     ],
+    dislikes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Recipe"
+        }
+    ],
     isActivated: {
         type: Boolean,
         default: false

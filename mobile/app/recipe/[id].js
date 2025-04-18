@@ -1,20 +1,21 @@
-import {StyleSheet} from 'react-native';
-import {COLORS, SIZES} from "../../constants";
-import {Stack, useLocalSearchParams, useRouter} from "expo-router";
-import {SafeAreaView, ScrollView, TouchableOpacity, View, Text} from "react-native";
-import {MaterialCommunityIcons} from "@expo/vector-icons";
-import {Image} from "expo-image";
-import {useEffect, useState} from "react";
-import {RecipeService} from "../../entities";
-import {useStore} from "../../store/store";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { COLORS, SIZES } from "../../constants";
+import { RecipeService } from "../../entities";
+import { useStore } from "../../store/store";
+import { Share } from "react-native";
 
 const RecipePage = () => {
     const router = useRouter();
-    const {id} = useLocalSearchParams();
+    const { id } = useLocalSearchParams();
     const user = useStore(state => state.user);
     const fetchToggleLike = useStore(state => state.fetchToggleLike);
     const [recipe, setRecipe] = useState({});
     const [likes, setLikes] = useState();
+    const [dislikes, setDislikes] = useState();
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -24,6 +25,29 @@ const RecipePage = () => {
         const likes = await fetchToggleLike(id);
         setLikes(likes)
     }
+    //TODO
+    // const toggleDislike = async () => {
+    //     const dislikes = await fetchToggleDislike(id);
+    //     setDislikes(dislikes)
+    // }
+
+    const handleShare = async () => {
+        try {
+            await Share.share({
+                message: `
+${recipe.title}
+${recipe.description}
+Інгредієнти:
+${recipe.ingredients.join('\n')}
+Інструкції:
+${recipe.instructions}
+                    `
+            });
+        } catch (error) {
+            console.error('Error sharing:', error);
+        }
+    };
+
 
     const fetchDeleteRecipe = async () => {
         try {
@@ -53,34 +77,42 @@ const RecipePage = () => {
 
 
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: COLORS.bgSecondary}}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.bgSecondary }}>
             <Stack.Screen
                 options={{
                     statusBarTranslucent: false,
                     headerShown: true,
                     headerTitle: "",
-                    headerTitleStyle: {fontFamily: "Montserrat-Regular"},
-                    headerStyle: {backgroundColor: COLORS.bgSecondary},
+                    headerTitleStyle: { fontFamily: "Montserrat-Regular" },
+                    headerStyle: { backgroundColor: COLORS.bgSecondary },
                     headerShadowVisible: false,
                     headerLeft: () => (
                         <TouchableOpacity onPress={() => {
                             router.back();
                         }}>
-                            <MaterialCommunityIcons name="arrow-left-thin" size={24} color={COLORS.secondary}/>
+                            <MaterialCommunityIcons name="arrow-left-thin" size={24} color={COLORS.secondary} />
                         </TouchableOpacity>
                     ),
-                    headerRight: () => {
-                        if (user.id === recipe.authorId) return (
-                            <View style={{flexDirection: "row"}}>
-                                <TouchableOpacity onPress={() => router.push(`/profile/my-recipes/new-recipe/${recipe._id}`)}>
-                                    <MaterialCommunityIcons name="pencil" size={24} color={COLORS.secondary}/>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={{marginLeft: SIZES.medium}} onPress={fetchDeleteRecipe}>
-                                    <MaterialCommunityIcons name="trash-can" size={24} color={COLORS.error}/>
-                                </TouchableOpacity>
-                            </View>
-                        );
-                    }
+                    headerRight: () => (
+
+                        <View style={{ flexDirection: "row" }}>
+                            {
+                                user.id === recipe.authorId ? (
+                                    <View style={{ flexDirection: "row" }}>
+                                        <TouchableOpacity onPress={() => router.push(`/profile/my-recipes/new-recipe/${recipe._id}`)}>
+                                            <MaterialCommunityIcons name="pencil" size={24} color={COLORS.secondary} />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={{ marginLeft: SIZES.medium }} onPress={fetchDeleteRecipe}>
+                                            <MaterialCommunityIcons name="trash-can" size={24} color={COLORS.error} />
+                                        </TouchableOpacity>
+                                    </View>
+                                ) : null
+                            }
+                            <TouchableOpacity style={{ marginLeft: SIZES.medium }} onPress={handleShare}>
+                                <MaterialCommunityIcons name="share-variant" size={24} color={COLORS.secondary} />
+                            </TouchableOpacity>
+                        </View>
+                    )
                 }}
             />
             {
@@ -89,24 +121,24 @@ const RecipePage = () => {
 
             {
                 !isLoading && !error && (
-                    <ScrollView style={{paddingHorizontal: SIZES.large}}>
+                    <ScrollView style={{ paddingHorizontal: SIZES.large }}>
                         <Text style={styles.category}>{recipe.category} →</Text>
                         <Text style={styles.title}>{recipe.title}</Text>
                         <View style={styles.imageContainer}>
                             <Image
-                                source={process.env.EXPO_PUBLIC_SERVER_URL + recipe.image} contentFit="cover" style={styles.image}/>
+                                source={process.env.EXPO_PUBLIC_SERVER_URL + recipe.image} contentFit="cover" style={styles.image} />
                         </View>
                         <View style={styles.statsBlockContainer}>
                             <View style={styles.statContainer}>
-                                <MaterialCommunityIcons name="eye" size={30} color={COLORS.secondary}/>
+                                <MaterialCommunityIcons name="eye" size={30} color={COLORS.secondary} />
                                 <Text style={styles.statText}>{recipe.views}</Text>
                             </View>
                             <TouchableOpacity onPress={toggleLike}>
                                 <View style={styles.statContainer}>
                                     {
                                         isLiked
-                                            ? (<MaterialCommunityIcons name="cards-heart" size={30} color={COLORS.secondary}/>)
-                                            : (<MaterialCommunityIcons name="cards-heart-outline" size={30} color={COLORS.secondary}/>)
+                                            ? (<MaterialCommunityIcons name="cards-heart" size={30} color={COLORS.secondary} />)
+                                            : (<MaterialCommunityIcons name="cards-heart-outline" size={30} color={COLORS.secondary} />)
                                     }
                                     <Text style={styles.statText}>{likes}</Text>
                                 </View>
@@ -131,8 +163,6 @@ const RecipePage = () => {
                                 <Text style={styles.blockText}>{recipe.instructions}</Text>
                             </View>
                         </View>
-
-
                     </ScrollView>
                 )
             }
@@ -152,9 +182,9 @@ const styles = StyleSheet.create({
     imageContainer: {
         width: "100%",
         height: 200,
-        borderRadius: 20, // Закругленные углы
-        overflow: 'hidden', // Чтобы изображение не выходило за рамки
-        marginVertical: 15, // Отступы сверху и снизу
+        borderRadius: 20,
+        overflow: 'hidden',
+        marginVertical: 15,
     },
     image: {
         width: "100%",

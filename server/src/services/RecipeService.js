@@ -2,6 +2,7 @@ import Recipe from "../models/Recipe.js";
 import {ApiError} from "../exceptions/ApiError.js";
 import User from "../models/User.js";
 
+//TODO категория передаеться по id
 
 class RecipeService {
 
@@ -97,6 +98,34 @@ class RecipeService {
         return {
             userLikes: user.likes,
             recipeLikes: targetRecipe.likes.length
+        };
+    }
+
+    async toggleDislike(id, userId) {
+        const targetRecipe = await Recipe.findById(id);
+        if (!targetRecipe) {
+            throw ApiError.BadRequest("Рецепт не знайдено");
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            throw ApiError.BadRequest("Користувача не знайдено");
+        }
+
+        const isDisliked = targetRecipe.likes.includes(userId);
+
+        if (isDisliked) {
+            targetRecipe.dislikes = targetRecipe.dislikes.filter(dislike => dislike.toString() !== userId.toString());
+            user.dislikes = user.dislikes.filter(dislike => dislike.toString() !== id.toString());
+        } else {
+            targetRecipe.dislikes.push(userId);
+            user.dislikes.push(id);
+        }
+
+        await Promise.all([targetRecipe.save(), user.save()]);
+        return {
+            userDislikes: user.dislikes,
+            recipeDislikes: targetRecipe.dislikes.length
         };
     }
 

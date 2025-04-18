@@ -2,7 +2,23 @@ import mongoose from "mongoose";
 
 const Recipe = new mongoose.Schema({
     title: String,
-    ingredients: [String],
+    ingredients: [
+        {
+            ingredient: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Ingredient",
+                required: true
+            },
+            amount: {
+                type: Number,
+                required: true
+            },
+            unit: {
+                type: String,
+                required: true
+            }
+        }
+    ],
     instructions: String,
     description: String,
     authorId: {
@@ -10,8 +26,9 @@ const Recipe = new mongoose.Schema({
         ref: "User"
     },
     category: {
-        type: String,
-        ref: "Category"
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+        required: true
     },
     isPublic: {
         type: Boolean,
@@ -26,11 +43,17 @@ const Recipe = new mongoose.Schema({
             ref: "User"
         }
     ],
+    dislikes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        }
+    ],
     views: {
         type: Number,
         default: 0
     },
 
-}, {timestamps: true});
+}, { timestamps: true });
 
 export default mongoose.model("Recipe", Recipe);

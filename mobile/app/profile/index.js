@@ -15,7 +15,7 @@ const Profile = () => {
 
     const handleLogout = async () => {
         await fetchUserLogout();
-        router.push("/login");
+        router.replace("/login");
     }
 
     useEffect(() => {

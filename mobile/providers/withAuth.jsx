@@ -12,7 +12,7 @@ export const withCheckAuth = (Component) => (props) => {
         if (token) {
             if(!isAuth) await fetchUserRefresh();
         } else {
-            router.push("/login");
+            router.replace("/login");
         }
     }
 

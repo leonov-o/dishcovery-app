@@ -38,6 +38,18 @@ class RecipeController {
         }
     }
 
+    async toggleDislike(req, res, next) {
+        try {
+            const likes = await recipeService.toggleDislike(req.params.id, req.user.id);
+            res.status(200).json({
+                success: true,
+                data: likes
+            });
+        } catch (e) {
+            next(e);
+        }
+    }
+
     async createRecipe(req, res, next) {
         try {
             const recipe = await recipeService.create(req.body, req.user.id);
