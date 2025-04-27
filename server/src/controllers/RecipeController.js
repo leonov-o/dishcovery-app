@@ -6,8 +6,7 @@ class RecipeController {
             const recipes = await recipeService.getAll(req.query);
             res.status(200).json({
                 success: true,
-                data: recipes,
-                totalCount: recipes.length
+                ...recipes
             });
         } catch (e) {
             next(e);

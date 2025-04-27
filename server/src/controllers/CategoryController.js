@@ -5,10 +5,10 @@ class CategoryController {
 
     async getAllCategories(req, res, next) {
         try {
-            const categories = await categoryService.getAll();
+            const categories = await categoryService.getAll(req.query);
             res.status(200).json({
                 success: true,
-                data: categories
+                ...categories
             });
         } catch (e) {
             next(e);

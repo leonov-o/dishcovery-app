@@ -5,10 +5,10 @@ class IngredientController {
 
     async getAllIngredients(req, res, next) {
         try {
-            const ingredients = await ingredientService.getAll();
+            const ingredients = await ingredientService.getAll(req.query);
             res.status(200).json({
                 success: true,
-                data: ingredients
+                ...ingredients
             });
         } catch (e) {
             next(e);
