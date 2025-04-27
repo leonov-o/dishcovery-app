@@ -1,0 +1,1 @@
+export {IngredientService} from "./service"

@@ -16,21 +16,6 @@ export class UserService {
         return response.data;
     }
 
-    static async login(credentials) {
-        const response = await $api.post('/login', credentials);
-        return response.data;
-    }
-
-    static async register(credentials) {
-        const response = await $api.post('/register', credentials);
-        return response.data;
-    }
-
-    static async logout(refreshToken) {
-        const response = await $api.post('/logout', {refreshToken});
-        return response.data;
-    }
-
     static async update(id, data) {
         const response = await $api.put(`/users/${id}`, data);
         return response.data;
@@ -41,8 +26,23 @@ export class UserService {
         return response.data;
     }
 
+    static async login(credentials) {
+        const response = await $api.post('/auth/login', credentials);
+        return response.data;
+    }
+
+    static async register(credentials) {
+        const response = await $api.post('/auth/register', credentials);
+        return response.data;
+    }
+
+    static async logout(refreshToken) {
+        const response = await $api.post('/auth/logout', {refreshToken});
+        return response.data;
+    }
+
     static async refresh(refreshToken) {
-        const response = await $api.post('/refresh', {refreshToken});
+        const response = await $api.post('/auth/refresh', {refreshToken});
         return response.data;
     }
 }
