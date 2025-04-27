@@ -10,7 +10,7 @@ const Recipe = new mongoose.Schema({
                 required: true
             },
             amount: {
-                type: Number,
+                type: String,
                 required: true
             },
             unit: {
@@ -19,8 +19,23 @@ const Recipe = new mongoose.Schema({
             }
         }
     ],
+    nutritionalValue: {
+        calories: {
+            type: String
+        },
+        proteins: {
+            type: String
+        },
+        fats: {
+            type: String
+        },
+        carbohydrates: {
+            type: String
+        }
+    },
     instructions: String,
     description: String,
+    recommendations: String,
     authorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
