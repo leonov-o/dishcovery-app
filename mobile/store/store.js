@@ -1,8 +1,8 @@
-import {create} from 'zustand'
-import {persist, createJSONStorage} from 'zustand/middleware'
-import {immer} from "zustand/middleware/immer";
-import {CategoryService, RecipeService, UserService} from "../entities";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { immer } from "zustand/middleware/immer";
+import { CategoryService, RecipeService, UserService } from "../entities";
 
 
 export const useStore = create()(immer(persist((set, get) => ({
@@ -20,7 +20,7 @@ export const useStore = create()(immer(persist((set, get) => ({
                 state.error = ""
                 state.isLoading = false
             })
-        }catch (e) {
+        } catch (e) {
             console.log(e.response?.data?.message)
             set(state => {
                 state.error = e.response?.data?.message
@@ -36,7 +36,7 @@ export const useStore = create()(immer(persist((set, get) => ({
                 state.user = result.data
                 state.error = ""
             })
-        }catch (e) {
+        } catch (e) {
             console.log(e.response?.data?.message)
             set(state => {
                 state.error = e.response?.data?.message
@@ -44,10 +44,10 @@ export const useStore = create()(immer(persist((set, get) => ({
         }
     },
 
-    fetchUserLogin: async ({email, password}) => {
+    fetchUserLogin: async ({ email, password }) => {
         try {
-            const result = await UserService.login({email, password});
-            const {accessToken, refreshToken, user} = result.data;
+            const result = await UserService.login({ email, password });
+            const { accessToken, refreshToken, user } = result.data;
             await AsyncStorage.setItem('accessToken', accessToken);
             await AsyncStorage.setItem('refreshToken', refreshToken);
 
@@ -56,7 +56,7 @@ export const useStore = create()(immer(persist((set, get) => ({
                 state.isAuth = true
                 state.error = ""
             })
-        }catch (e) {
+        } catch (e) {
             console.log(e.response?.data?.message)
             set(state => {
                 state.error = e.response?.data?.message
@@ -64,10 +64,10 @@ export const useStore = create()(immer(persist((set, get) => ({
         }
     },
 
-    fetchUserRegister: async ({email, name, password}) => {
+    fetchUserRegister: async ({ email, name, password }) => {
         try {
-            const result = await UserService.register({email, name, password});
-            const {accessToken, refreshToken, user} = result.data;
+            const result = await UserService.register({ email, name, password });
+            const { accessToken, refreshToken, user } = result.data;
             await AsyncStorage.setItem('accessToken', accessToken);
             await AsyncStorage.setItem('refreshToken', refreshToken);
 
@@ -76,7 +76,7 @@ export const useStore = create()(immer(persist((set, get) => ({
                 state.isAuth = true
                 state.error = ""
             })
-        }catch (e) {
+        } catch (e) {
             console.log(e.response?.data?.message)
             set(state => {
                 state.error = e.response?.data?.message
@@ -92,7 +92,7 @@ export const useStore = create()(immer(persist((set, get) => ({
                 state.user = result.data
                 state.error = ""
             })
-        }catch (e) {
+        } catch (e) {
             console.log(e.response?.data?.message)
             set(state => {
                 state.error = e.response?.data?.message
@@ -111,7 +111,7 @@ export const useStore = create()(immer(persist((set, get) => ({
                 state.isAuth = false
                 state.error = ""
             })
-        }catch (e) {
+        } catch (e) {
             console.log(e.response?.data?.message)
             set(state => {
                 state.error = e.response?.data?.message
@@ -122,7 +122,7 @@ export const useStore = create()(immer(persist((set, get) => ({
     fetchUserRefresh: async () => {
         try {
             const result = await UserService.refresh(await AsyncStorage.getItem('refreshToken'));
-            const {accessToken, refreshToken, user} = result.data;
+            const { accessToken, refreshToken, user } = result.data;
             await AsyncStorage.setItem('accessToken', accessToken);
             await AsyncStorage.setItem('refreshToken', refreshToken);
 
@@ -131,7 +131,7 @@ export const useStore = create()(immer(persist((set, get) => ({
                 state.isAuth = true
                 state.error = ""
             })
-        }catch (e) {
+        } catch (e) {
             console.log(e.response?.data)
             set(state => {
                 state.error = e.response?.data?.message
@@ -145,10 +145,35 @@ export const useStore = create()(immer(persist((set, get) => ({
             const result = await RecipeService.toggleLike(id);
             set(state => {
                 state.user.likes = result.data.userLikes
+                state.user.dislikes = result.data.userDislikes
                 state.error = ""
             })
-            return result.data.recipeLikes;
-        }catch (e) {
+            return {
+                likes: result.data.recipeLikes,
+                dislikes: result.data.recipeDislikes
+            };
+        } catch (e) {
+            console.log(e.response?.data?.message)
+            set(state => {
+                state.error = e.response?.data?.message
+            })
+        }
+    },
+
+    fetchToggleDislike: async (id) => {
+        try {
+            const result = await RecipeService.toggleDislike(id);
+            set(state => {
+                state.user.likes = result.data.userLikes
+                state.user.dislikes = result.data.userDislikes
+                state.error = ""
+            })
+
+            return {
+                likes: result.data.recipeLikes,
+                dislikes: result.data.recipeDislikes
+            };
+        } catch (e) {
             console.log(e.response?.data?.message)
             set(state => {
                 state.error = e.response?.data?.message

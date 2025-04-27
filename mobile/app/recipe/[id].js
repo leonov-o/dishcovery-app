@@ -2,34 +2,37 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { COLORS, SIZES } from "../../constants";
 import { RecipeService } from "../../entities";
 import { useStore } from "../../store/store";
-import { Share } from "react-native";
 
 const RecipePage = () => {
     const router = useRouter();
     const { id } = useLocalSearchParams();
     const user = useStore(state => state.user);
     const fetchToggleLike = useStore(state => state.fetchToggleLike);
+    const fetchToggleDislike = useStore(state => state.fetchToggleDislike);
     const [recipe, setRecipe] = useState({});
     const [likes, setLikes] = useState();
     const [dislikes, setDislikes] = useState();
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const isLiked = user.likes.includes(id)
+    const isLiked = user.likes.includes(id);
+    const isDisliked = user.dislikes.includes(id);
 
     const toggleLike = async () => {
-        const likes = await fetchToggleLike(id);
-        setLikes(likes)
+        const { likes, dislikes } = await fetchToggleLike(id);
+        setLikes(likes);
+        setDislikes(dislikes);
     }
-    //TODO
-    // const toggleDislike = async () => {
-    //     const dislikes = await fetchToggleDislike(id);
-    //     setDislikes(dislikes)
-    // }
+
+    const toggleDislike = async () => {
+        const { likes, dislikes } = await fetchToggleDislike(id);
+        setDislikes(dislikes);
+        setLikes(likes);
+    }
 
     const handleShare = async () => {
         try {
@@ -38,7 +41,7 @@ const RecipePage = () => {
 ${recipe.title}
 ${recipe.description}
 Інгредієнти:
-${recipe.ingredients.join('\n')}
+${recipe.ingredients.map(ingredient => `${ingredient.ingredient.name} - ${ingredient.amount} ${ingredient.unit}`).join("\n")}
 Інструкції:
 ${recipe.instructions}
                     `
@@ -64,6 +67,7 @@ ${recipe.instructions}
             const result = await RecipeService.getRecipeById(id);
             setRecipe(result.data)
             setLikes(result.data.likes.length)
+            setDislikes(result.data.dislikes.length)
             setIsLoading(false)
         } catch (e) {
             setIsLoading(false)
@@ -122,7 +126,7 @@ ${recipe.instructions}
             {
                 !isLoading && !error && (
                     <ScrollView style={{ paddingHorizontal: SIZES.large }}>
-                        <Text style={styles.category}>{recipe.category} →</Text>
+                        <Text style={styles.category}>{recipe.category.name} →</Text>
                         <Text style={styles.title}>{recipe.title}</Text>
                         <View style={styles.imageContainer}>
                             <Image
@@ -133,16 +137,37 @@ ${recipe.instructions}
                                 <MaterialCommunityIcons name="eye" size={30} color={COLORS.secondary} />
                                 <Text style={styles.statText}>{recipe.views}</Text>
                             </View>
+                            <TouchableOpacity onPress={toggleDislike}>
+                                <View style={styles.statContainer}>
+                                    {
+                                        isDisliked
+                                            ? (<MaterialCommunityIcons name="thumb-down" size={30} color={COLORS.secondary} />)
+                                            : (<MaterialCommunityIcons name="thumb-down-outline" size={30} color={COLORS.secondary} />)
+                                    }
+                                    <Text style={styles.statText}>{dislikes}</Text>
+                                </View>
+                            </TouchableOpacity>
                             <TouchableOpacity onPress={toggleLike}>
                                 <View style={styles.statContainer}>
                                     {
                                         isLiked
-                                            ? (<MaterialCommunityIcons name="cards-heart" size={30} color={COLORS.secondary} />)
-                                            : (<MaterialCommunityIcons name="cards-heart-outline" size={30} color={COLORS.secondary} />)
+                                            ? (<MaterialCommunityIcons name="thumb-up" size={30} color={COLORS.secondary} />)
+                                            : (<MaterialCommunityIcons name="thumb-up-outline" size={30} color={COLORS.secondary} />)
                                     }
                                     <Text style={styles.statText}>{likes}</Text>
                                 </View>
                             </TouchableOpacity>
+                        </View>
+                        <View style={styles.recommendationContainer}>
+                            <MaterialCommunityIcons name="assistant" size={24} color={COLORS.tertiary} />
+                            <Text style={styles.recommendationText}>
+                                Це морозиво - чудова альтернатива магазинним десертам, адже воно не містить консервантів та зайвого цукру.
+                                Банани надають природну солодкість, а йогурт забезпечує кремову текстуру.
+                                Для найкращого результату використовуйте дуже стиглі банани з темними цятками – вони солодші та ароматніші.
+                                Волоські горіхи можна замінити на будь-які інші за вашим смаком: мигдаль, фундук чи кеш'ю.
+                                Додавання дрібки кориці або ванілі підкреслить смак десерту.
+                            </Text>
+
                         </View>
                         <View>
                             <Text style={styles.blockTitle}>{recipe.description}</Text>
@@ -152,7 +177,7 @@ ${recipe.instructions}
                             <View style={styles.blockContainer}>
                                 {
                                     recipe.ingredients.map((ingredient, index) => (
-                                        <Text key={index} style={styles.blockText}>{ingredient}</Text>
+                                        <Text key={index} style={styles.blockText}>{ingredient.ingredient.name} - {ingredient.amount} {ingredient.unit} </Text>
                                     ))
                                 }
                             </View>
@@ -163,6 +188,19 @@ ${recipe.instructions}
                                 <Text style={styles.blockText}>{recipe.instructions}</Text>
                             </View>
                         </View>
+                        {
+                            recipe.nutritionalValue && (
+                                <View>
+                                    <Text style={styles.blockTitle}>Харчова цінність:</Text>
+                                    <View style={styles.blockContainer}>
+                                        <Text style={styles.blockText}>Калорії: {recipe.nutritionalValue?.calories} ккал</Text>
+                                        <Text style={styles.blockText}>Білки: {recipe.nutritionalValue?.proteins} г</Text>
+                                        <Text style={styles.blockText}>Жири: {recipe.nutritionalValue?.fats} г</Text>
+                                        <Text style={styles.blockText}>Вуглеводи: {recipe.nutritionalValue?.carbohydrates} г</Text>
+                                    </View>
+                                </View>
+                            )
+                        }
                     </ScrollView>
                 )
             }
@@ -204,17 +242,31 @@ const styles = StyleSheet.create({
         fontFamily: "Montserrat-Medium",
         fontSize: SIZES.medium
     },
+
+    recommendationContainer: {
+        backgroundColor: "rgba(255, 193, 7, 0.5)",
+        borderRadius: 10,
+        marginTop: 6,
+        marginBottom: 10,
+        padding: SIZES.xSmall
+    },
+    recommendationText: {
+        fontSize: SIZES.small,
+        fontFamily: "Montserrat-Regular",
+        textAlign: "justify",
+        color: COLORS.textPrimary,
+        padding: SIZES.xSmall
+    },
+
     blockContainer: {
-        marginTop: 5,
-        paddingHorizontal: SIZES.small,
-        paddingVertical: SIZES.large
+        padding: SIZES.small
     },
     blockTitle: {
         fontSize: 15,
         fontFamily: "Montserrat-Medium",
         color: COLORS.textPrimary,
         textAlign: "justify",
-        marginTop: 5
+        marginTop: 7
     },
     blockText: {
         fontSize: 16,
