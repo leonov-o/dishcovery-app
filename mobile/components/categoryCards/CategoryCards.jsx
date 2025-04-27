@@ -1,9 +1,9 @@
-import {SIZES} from "../../constants";
-import {View, Text, TouchableOpacity} from "react-native";
-import {styles} from "./categoryCards.styles";
-import {useStore} from "../../store/store";
-import {useEffect} from "react";
-import {useRouter} from "expo-router";
+import { useRouter } from "expo-router";
+import { useEffect } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+import { SIZES } from "../../constants";
+import { useStore } from "../../store/store";
+import { styles } from "./categoryCards.styles";
 
 
 export const CategoryCards = () => {
@@ -16,7 +16,7 @@ export const CategoryCards = () => {
     }, []);
 
     return (
-        <View style={{marginTop: SIZES.large}}>
+        <View style={{ marginTop: SIZES.large }}>
             <Text
                 style={styles.title}>Категорії</Text>
             <View style={styles.cardsContainer}>
@@ -36,7 +36,7 @@ export const CategoryCards = () => {
                         )
                         : (
                             categories.slice(0, 5).map((item, index) => (
-                                <TouchableOpacity key={index} onPress={() => router.push(`/search/?categoryCard=${item.name}`)}>
+                                <TouchableOpacity key={index} onPress={() => router.push(`/search/?categoryCard=${item._id}`)}>
                                     <View key={index} style={styles.card}>
                                         <Text style={styles.carText}>{item.name}</Text>
                                     </View>

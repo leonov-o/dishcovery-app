@@ -1,9 +1,9 @@
-import {COLORS, SIZES} from "../../constants";
-import {TextInput, View, Text} from "react-native";
-import {useState} from "react";
+import { useState } from "react";
+import { Text, TextInput, View } from "react-native";
+import { COLORS, SIZES } from "../../constants";
 
 
-export const Input = ({label, placeholder, value, style, containerStyle, onChangeText, onSubmitEditing, disabled, secure, regex,validationMessage, setValid, ...props}) => {
+export const Input = ({ label, placeholder, value, inputMode, style, containerStyle, onChangeText, onSubmitEditing, disabled, secure, regex, validationMessage, setValid, ...props }) => {
     const [showMessage, setShowMessage] = useState(false);
     const handleTextChange = (input) => {
         onChangeText(input);
@@ -26,12 +26,13 @@ export const Input = ({label, placeholder, value, style, containerStyle, onChang
 
     return (
         <View style={containerStyle}>
-            {showMessage && <Text style={{color: COLORS.error, fontFamily: "Montserrat-Regular", marginTop: SIZES.xSmall, marginLeft: SIZES.small}}>{validationMessage}</Text>}
-            {label && <Text style={{color: COLORS.textPrimary, fontFamily: "Montserrat-Medium", marginTop: SIZES.small, marginLeft: SIZES.small}}>{label}</Text>}
+            {showMessage && <Text style={{ color: COLORS.error, fontFamily: "Montserrat-Regular", marginTop: SIZES.xSmall, marginLeft: SIZES.small }}>{validationMessage}</Text>}
+            {label && <Text style={{ color: COLORS.textPrimary, fontFamily: "Montserrat-Medium", marginTop: SIZES.small, marginLeft: SIZES.small }}>{label}</Text>}
             <TextInput
                 secureTextEntry={secure}
                 placeholder={placeholder}
                 value={value}
+                inputMode={inputMode}
                 editable={!disabled}
                 onChangeText={handleTextChange}
                 onSubmitEditing={onSubmitEditing}
