@@ -1,7 +1,7 @@
 import $api from "../http/index.js";
 
 
-export const uploadImage = async (imageUri)=> {
+export const uploadImage = async (imageUri) => {
     try {
         if (imageUri) {
             let filename = imageUri.split('/').pop();
@@ -9,8 +9,8 @@ export const uploadImage = async (imageUri)=> {
             let type = match ? `image/${match[1]}` : `image`;
 
             const formData = new FormData();
-            formData.append('file', {uri: imageUri, name: filename, type});
-            const response = await $api.post('/upload', formData, {
+            formData.append('file', { uri: imageUri, name: filename, type });
+            const response = await $api.post('/files/upload', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
