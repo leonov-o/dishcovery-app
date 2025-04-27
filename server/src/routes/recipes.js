@@ -13,5 +13,6 @@ router.get("/:id", authMiddleware, recipeController.getRecipeById);
 router.put("/:id", authMiddleware, recipeController.updateRecipe);
 router.delete("/:id", authMiddleware, recipeController.deleteRecipe);
 router.post("/:id/like", authMiddleware, recipeController.toggleLike);
+router.post("/:id/dislike", authMiddleware, recipeController.toggleDislike);
 
 export default router;

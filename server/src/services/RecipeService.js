@@ -1,14 +1,17 @@
 import Recipe from "../models/Recipe.js";
-import {ApiError} from "../exceptions/ApiError.js";
+import { ApiError } from "../exceptions/ApiError.js";
 import User from "../models/User.js";
-
-//TODO категория передаеться по id
+import mongoose from "mongoose";
 
 class RecipeService {
 
     async getAll(query) {
-        const { page = 0, limit = 10, isPublic, search, category, authorId, sort } = query;
-        console.log(query)
+        const { isPublic, search, category, authorId, sort, ingredients } = query;
+        let page = parseInt(query.page) || 0;
+        let limit = parseInt(query.limit) || 10;
+        if (page < 0) page = 0;
+        if (limit < 1) limit = 1;
+        if (limit > 100) limit = 100;
 
         const searchQuery = {};
 
@@ -16,22 +19,36 @@ class RecipeService {
             searchQuery.$or = [
                 { title: { $regex: search, $options: "i" } },
                 { description: { $regex: search, $options: "i" } },
-                { ingredients: { $regex: search, $options: "i" } },
                 { instructions: { $regex: search, $options: "i" } }
             ];
         }
 
-        if (category) searchQuery.category = category;
-        if (authorId) searchQuery.authorId = authorId;
+        if (ingredients) {
+            let ingredientIds = [];
+
+            if (typeof ingredients === 'string') {
+                ingredientIds = [new mongoose.Types.ObjectId(ingredients)];
+            }
+            else if (Array.isArray(ingredients)) {
+                ingredientIds = ingredients.map(id => new mongoose.Types.ObjectId(id));
+            }
+
+            if (ingredientIds.length > 0) {
+                searchQuery['$and'] = ingredientIds.map(id => ({
+                    'ingredients.ingredient': id
+                }));
+            }
+        }
+
+        if (category) searchQuery.category = new mongoose.Types.ObjectId(category);
+        if (authorId) searchQuery.authorId = new mongoose.Types.ObjectId(authorId);
 
         if (isPublic !== undefined) searchQuery.isPublic = Boolean(isPublic);
 
-
         let sortQuery = {};
         if (sort === "likesAsc" || sort === "likesDesc") {
-
             const sortDirection = sort === "likesAsc" ? 1 : -1;
-
+            console.log("searchQuery", searchQuery);
             const recipes = await Recipe.aggregate([
                 { $match: searchQuery },
                 {
@@ -42,9 +59,22 @@ class RecipeService {
                 { $sort: { likesCount: sortDirection } },
                 { $skip: page * limit },
                 { $limit: limit },
+            ])
+
+            const populatedRecipes = await Recipe.populate(recipes, [
+                { path: "category" },
+                { path: "ingredients.ingredient" },
             ]);
 
-            return recipes;
+            const totalCount = await Recipe.countDocuments(searchQuery);
+
+            return {
+                page,
+                limit,
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit),
+                data: populatedRecipes,
+            };
         } else {
             if (sort === "newest") sortQuery.createdAt = -1;
             else if (sort === "popular") sortQuery.views = -1;
@@ -52,14 +82,28 @@ class RecipeService {
             const recipes = await Recipe.find(searchQuery)
                 .sort(sortQuery)
                 .limit(limit)
-                .skip(page * limit);
+                .skip(page * limit)
+                .populate("category")
+                .populate("ingredients.ingredient");
 
-            return recipes;
+            const totalCount = await Recipe.countDocuments(searchQuery);
+
+            return {
+                page,
+                limit,
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit),
+                data: recipes,
+            };
         }
     }
 
     async getById(id, userId) {
-        const recipe = await Recipe.findById(id);
+        const recipe = await Recipe
+            .findById(id)
+            .populate("category")
+            .populate("ingredients.ingredient");
+        ;
         if (!recipe) {
             throw ApiError.BadRequest("Рецепт не знайдено");
         }
@@ -92,14 +136,20 @@ class RecipeService {
         } else {
             targetRecipe.likes.push(userId);
             user.likes.push(id);
+
+            targetRecipe.dislikes = targetRecipe.dislikes.filter(dislike => dislike.toString() !== userId.toString());
+            user.dislikes = user.dislikes.filter(dislike => dislike.toString() !== id.toString());
         }
 
         await Promise.all([targetRecipe.save(), user.save()]);
         return {
             userLikes: user.likes,
-            recipeLikes: targetRecipe.likes.length
+            userDislikes: user.dislikes,
+            recipeLikes: targetRecipe.likes.length,
+            recipeDislikes: targetRecipe.dislikes.length
         };
     }
+
 
     async toggleDislike(id, userId) {
         const targetRecipe = await Recipe.findById(id);
@@ -112,7 +162,7 @@ class RecipeService {
             throw ApiError.BadRequest("Користувача не знайдено");
         }
 
-        const isDisliked = targetRecipe.likes.includes(userId);
+        const isDisliked = targetRecipe.dislikes.includes(userId);
 
         if (isDisliked) {
             targetRecipe.dislikes = targetRecipe.dislikes.filter(dislike => dislike.toString() !== userId.toString());
@@ -120,14 +170,20 @@ class RecipeService {
         } else {
             targetRecipe.dislikes.push(userId);
             user.dislikes.push(id);
+
+            targetRecipe.likes = targetRecipe.likes.filter(like => like.toString() !== userId.toString());
+            user.likes = user.likes.filter(like => like.toString() !== id.toString());
         }
 
         await Promise.all([targetRecipe.save(), user.save()]);
         return {
+            userLikes: user.likes,
             userDislikes: user.dislikes,
+            recipeLikes: targetRecipe.likes.length,
             recipeDislikes: targetRecipe.dislikes.length
         };
     }
+
 
     async create(recipe, userId) {
         if (!userId) {
@@ -142,12 +198,12 @@ class RecipeService {
             throw ApiError.BadRequest("Потрібне хоча б одне зображення");
         }
 
-        const newRecipe = await Recipe.create({...recipe, authorId: userId})
+        const newRecipe = await Recipe.create({ ...recipe, authorId: userId })
         return newRecipe;
     }
 
     async update(id, userId, recipe) {
-        const targetRecipe = await Recipe.findOne({_id: id});
+        const targetRecipe = await Recipe.findOne({ _id: id });
         if (!targetRecipe) {
             throw ApiError.BadRequest("Рецепт не знайдено");
         }
@@ -185,12 +241,16 @@ class RecipeService {
             updateData.image = recipe.image;
         }
 
-        const updatedRecipe = await Recipe.findOneAndUpdate({_id: id}, updateData, {new: true})
+        if (recipe.nutritionalValue) {
+            updateData.nutritionalValue = recipe.nutritionalValue;
+        }
+
+        const updatedRecipe = await Recipe.findOneAndUpdate({ _id: id }, updateData, { new: true })
         return updatedRecipe;
     }
 
     async delete(id, userId) {
-        const targetRecipe = await Recipe.findOne({_id: id});
+        const targetRecipe = await Recipe.findOne({ _id: id });
         if (!targetRecipe) {
             throw ApiError.BadRequest("Рецепт не знайдено");
         }
@@ -198,7 +258,7 @@ class RecipeService {
             throw ApiError.ForbiddenError();
         }
 
-        return Recipe.findOneAndDelete({_id: id});
+        return Recipe.findOneAndDelete({ _id: id });
     }
 
 }

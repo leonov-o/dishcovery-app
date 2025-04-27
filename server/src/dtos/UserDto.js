@@ -3,6 +3,7 @@ export class UserDto {
     email;
     name;
     likes;
+    dislikes;
     isActivated;
 
     constructor(model) {
@@ -10,6 +11,7 @@ export class UserDto {
         this.email = model.email;
         this.name = model.name;
         this.likes = model.likes;
+        this.dislikes = model.dislikes;
         this.isActivated = model.isActivated;
         return this;
     }

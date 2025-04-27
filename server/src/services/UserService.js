@@ -119,9 +119,24 @@ class UserService {
         });
     }
 
-    async getAllUsers() {
-        const users = await User.find({});
-        return Promise.all(users.map(async user => await new UserDto(user)));
+    async getAllUsers(query) {
+        let page = parseInt(query.page) || 0;
+        let limit = parseInt(query.limit) || 10;
+        if (page < 0) page = 0;
+        if (limit < 1) limit = 1;
+        if (limit > 100) limit = 100;
+
+        const users = await User.find().skip(page * limit).limit(limit);
+        const totalCount = await User.countDocuments();
+
+        const usersDto = await Promise.all(users.map(async user => await new UserDto(user)));
+        return {
+            page,
+            limit,
+            totalCount,
+            totalPages: Math.ceil(totalCount / limit),
+            data: usersDto
+        }
     }
 
     async getUserById(id) {
