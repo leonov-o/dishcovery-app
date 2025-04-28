@@ -2,6 +2,7 @@ import Recipe from "../models/Recipe.js";
 import { ApiError } from "../exceptions/ApiError.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
+import { aiAssistantService } from "./AiAssistantService.js";
 
 class RecipeService {
 
@@ -198,7 +199,15 @@ class RecipeService {
             throw ApiError.BadRequest("Потрібне хоча б одне зображення");
         }
 
-        const newRecipe = await Recipe.create({ ...recipe, authorId: userId })
+        const recommendations = await aiAssistantService.generateRecipeRecommendation({
+            title: recipe.title,
+            category: recipe.category,
+            ingredients: recipe.ingredients,
+            instructions: recipe.instructions,
+            description: recipe.description
+        })
+
+        const newRecipe = await Recipe.create({ ...recipe, recommendations, authorId: userId })
         return newRecipe;
     }
 
@@ -244,6 +253,17 @@ class RecipeService {
         if (recipe.nutritionalValue) {
             updateData.nutritionalValue = recipe.nutritionalValue;
         }
+
+
+        const recommendations = await aiAssistantService.generateRecipeRecommendation({
+            title: recipe.title,
+            category: recipe.category,
+            ingredients: recipe.ingredients,
+            instructions: recipe.instructions,
+            description: recipe.description
+        })
+
+        updateData.recommendations = recommendations;
 
         const updatedRecipe = await Recipe.findOneAndUpdate({ _id: id }, updateData, { new: true })
         return updatedRecipe;

@@ -3,11 +3,11 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Dimensions, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Dimensions, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { DButton, DDropdown, IngredientSelector, Input } from "../../../../components";
 import { COLORS, SIZES } from "../../../../constants";
 import { RecipeService } from "../../../../entities";
-import { uploadImage } from "../../../../shared/utils";
+import { aiGenerateRecipeDetails, uploadImage } from "../../../../shared/utils";
 import { useStore } from "../../../../store/store";
 
 const visibilityOptions = [{ label: "Публічний", value: "true" }, { label: "Приватний", value: "false" }];
@@ -25,6 +25,7 @@ const NewRecipePage = () => {
     const categories = useStore(state => state.categories);
     const categoriesOptions = categories.map((category) => ({ label: category.name, value: category._id }))
     const [isLoading, setIsLoading] = useState(false);
+    const [isAiLoading, setIsAiLoading] = useState(false);
     const [error, setError] = useState("");
 
     const [recipeData, setRecipeData] = useState({
@@ -86,6 +87,36 @@ const NewRecipePage = () => {
         }
     };
 
+    const generateRecipeDetails = async () => {
+        try {
+            setIsAiLoading(true);
+            const ingredientsRaw = recipeData.ingredients.length > 0
+                ? recipeData.ingredients.map((ingredient) => `${ingredient.ingredient.name} - ${ingredient.amount} ${ingredient.unit}`)
+                : null;
+
+            const details = await aiGenerateRecipeDetails({
+                title: recipeData.title,
+                category: recipeData.category,
+                ingredients: ingredientsRaw
+            });
+
+            if (details) {
+                setRecipeData(prev => ({
+                    ...prev,
+                    instructions: details?.instructions,
+                    description: details?.description,
+                    nutritionalValue: details?.nutritionalValue,
+                    cookTime: details?.cookTime && details?.cookTime.toString()
+                }));
+            }
+
+        } catch (e) {
+            setError("::generateRecipeDetails: ", e.response?.data?.message);
+        } finally {
+            setIsAiLoading(false);
+        }
+    }
+
     const handleSaveRecipe = async () => {
         console.log("::handleSaveRecipe: start");
         try {
@@ -118,16 +149,15 @@ const NewRecipePage = () => {
             }
             console.log("result: ", result)
             router.replace(`/recipe/${result.data._id}`);
-            setIsLoading(false);
         } catch (e) {
-            setIsLoading(false);
             setError("::handleSaveRecipe: ", e.response?.data?.message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const fetchRecipe = async () => {
         try {
-            setIsLoading(true);
             const result = await RecipeService.getRecipeById(id);
             const { image, title, ingredients, instructions, description, cookTime, category, nutritionalValue, difficulty, isPublic } = result.data;
 
@@ -143,10 +173,8 @@ const NewRecipePage = () => {
                 cookTime: cookTime.toString(),
                 visibility: isPublic.toString()
             });
-            setIsLoading(false);
         } catch (e) {
             setError(e.response?.data?.message)
-            setIsLoading(false);
         }
     }
 
@@ -176,10 +204,16 @@ const NewRecipePage = () => {
                     ),
                     headerRight: () => (
                         <View>
-                            <TouchableOpacity disabled={!isValid} onPress={handleSaveRecipe}>
-                                <MaterialCommunityIcons name={isEdit ? "content-save" : "check-circle-outline"} size={24}
-                                    color={isValid ? COLORS.secondary : COLORS.buttonDisabled} />
-                            </TouchableOpacity>
+                            {
+                                isLoading ? (
+                                    <ActivityIndicator size="small" color={COLORS.secondary} />
+                                ) : (
+                                    <TouchableOpacity disabled={!isValid} onPress={handleSaveRecipe}>
+                                        <MaterialCommunityIcons name={isEdit ? "content-save" : "check-circle-outline"} size={24}
+                                            color={isValid ? COLORS.secondary : COLORS.buttonDisabled} />
+                                    </TouchableOpacity>
+                                )
+                            }
                         </View>
                     )
                 }}
@@ -224,9 +258,15 @@ const NewRecipePage = () => {
                     <View style={{ height: 1, backgroundColor: COLORS.textSecondary, marginTop: SIZES.medium }} />
 
                     <View style={{ marginTop: SIZES.small, flexDirection: "row", justifyContent: "flex-end" }}>
-                        <TouchableOpacity>
-                            <MaterialCommunityIcons name="assistant" size={24} color={COLORS.tertiary} />
-                        </TouchableOpacity>
+                        {
+                            isAiLoading ? (
+                                <ActivityIndicator size="small" color={COLORS.secondary} />
+                            ) : (
+                                <TouchableOpacity onPress={generateRecipeDetails}>
+                                    <MaterialCommunityIcons name="assistant" size={24} color={COLORS.secondary} />
+                                </TouchableOpacity>
+                            )
+                        }
                     </View>
 
                     <Input label="Інструкція" placeholder="Введіть інструкцію" multiline value={recipeData.instructions}

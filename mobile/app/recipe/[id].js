@@ -158,17 +158,17 @@ ${recipe.instructions}
                                 </View>
                             </TouchableOpacity>
                         </View>
-                        <View style={styles.recommendationContainer}>
-                            <MaterialCommunityIcons name="assistant" size={24} color={COLORS.tertiary} />
-                            <Text style={styles.recommendationText}>
-                                Це морозиво - чудова альтернатива магазинним десертам, адже воно не містить консервантів та зайвого цукру.
-                                Банани надають природну солодкість, а йогурт забезпечує кремову текстуру.
-                                Для найкращого результату використовуйте дуже стиглі банани з темними цятками – вони солодші та ароматніші.
-                                Волоські горіхи можна замінити на будь-які інші за вашим смаком: мигдаль, фундук чи кеш'ю.
-                                Додавання дрібки кориці або ванілі підкреслить смак десерту.
-                            </Text>
+                        {
+                            recipe.recommendations && (
+                                <View style={styles.recommendationContainer}>
+                                    <MaterialCommunityIcons name="assistant" size={24} color={COLORS.tertiary} />
+                                    <Text style={styles.recommendationText}>
+                                        {recipe.recommendations}
+                                    </Text>
+                                </View>
+                            )
 
-                        </View>
+                        }
                         <View>
                             <Text style={styles.blockTitle}>{recipe.description}</Text>
                         </View>

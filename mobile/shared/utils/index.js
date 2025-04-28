@@ -24,3 +24,13 @@ export const uploadImage = async (imageUri) => {
         throw new Error(`Error uploading image: ${error}`)
     }
 };
+
+
+export const aiGenerateRecipeDetails = async ({title, category, ingredients}) => {
+    try {
+        const response = await $api.post('/ai/generate-recipe-details', {title, category, ingredients});
+        return response.data.data;
+    } catch (error) {
+        throw new Error(`Error generating recipe details: ${error}`)
+    }
+};
