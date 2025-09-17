@@ -6,6 +6,7 @@ import cors from 'cors';
 import router from './src/routes/index.js';
 import errorMiddleware from "./src/middlewares/errorMiddleware.js";
 import {requestLogger} from "./src/middlewares/requestLogger.js";
+import { generateRecipes } from "./src/scripts/generateRecipes.js";
 
 const app = express();
 app.use(fileUpload({}));
